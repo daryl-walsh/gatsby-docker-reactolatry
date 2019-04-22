@@ -68,8 +68,7 @@
   },
   "lint-staged": {
     "src/**/*.js": [
-      "eslint src --ext .js --fix",
-      "jest --findRelatedTests"
+      "eslint src --ext .js --fix"
     ],
     "./**/*.{js,json,css,md}": [
       "prettier --write",
