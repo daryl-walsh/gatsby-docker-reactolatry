@@ -32,8 +32,7 @@ exports.createPages = async ({ graphql, actions }) => {
       allWordpressPage {
         edges {
           node {
-            id
-            path
+            slug
             status
             template
             title
@@ -41,16 +40,16 @@ exports.createPages = async ({ graphql, actions }) => {
           }
         }
       }
-      allWordpressPost {
+      allWordpressWpPortfolio {
         edges {
           node {
-            id
-            path
-            status
-            template
-            format
             title
+            excerpt
+            slug
             content
+            featured_media {
+              source_url
+            }
           }
         }
       }
@@ -63,10 +62,13 @@ exports.createPages = async ({ graphql, actions }) => {
   }
 
   // Access query results via object destructuring
-  const { allWordpressPage, allWordpressPost } = result.data
+  const { allWordpressPage, allWordpressWpPortfolio } = result.data
 
   // Create Page pages.
   const pageTemplate = path.resolve(`./src/templates/page.js`)
+  const portfolioUnderContentTemplate = path.resolve(
+    `./src/templates/portfolioUnderContent.js`,
+  )
   // We want to create a detailed page for each page node.
   // The path field contains the relative original WordPress link
   // and we use it for the slug to preserve url structure.
@@ -80,21 +82,25 @@ exports.createPages = async ({ graphql, actions }) => {
       // as a template component. The `context` is
       // optional but is often necessary so the template
       // can query data specific to each page.
-      path: edge.node.path,
-      component: slash(pageTemplate),
+      path: `/${edge.node.slug}/`,
+      component: slash(
+        edge.node.template === 'portfolio_under_content.php'
+          ? portfolioUnderContentTemplate
+          : pageTemplate,
+      ),
       context: edge.node,
     })
   })
 
-  const postTemplate = path.resolve(`./src/templates/post.js`)
+  const portfolioTemplate = path.resolve(`./src/templates/portfolio.js`)
   // We want to create a detailed page for each post node.
   // The path field stems from the original WordPress link
   // and we use it for the slug to preserve url structure.
   // The Post ID is prefixed with 'POST_'
-  allWordpressPost.edges.forEach(edge => {
+  allWordpressWpPortfolio.edges.forEach(edge => {
     createPage({
-      path: `/post${edge.node.path}`,
-      component: slash(postTemplate),
+      path: `/portfolio/${edge.node.slug}`,
+      component: slash(portfolioTemplate),
       context: {
         id: edge.node,
       },
